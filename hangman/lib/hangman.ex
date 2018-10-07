@@ -44,11 +44,19 @@ defmodule Hangman do
 
   def new_game() do
     word = String.graphemes(Dictionary.random_word())   #turn string into characters
-    word = "#{word}" |> String.replace("\r", "") |> String.graphemes()
+    word = word |> String.replace("\r", "") |> String.graphemes()
     IO.puts(word)                                       #debugging: show word
     blank_word = word_to_blank(word)                       #turn the letters in a word into blanks
     
     %Hangman{letters: blank_word, word: word}
+  end
+
+  def new_game(user_word) do
+    word = user_word |> String.replace("\r", "") |> String.graphemes()
+    IO.puts(word)                                       #debugging: show word
+    blank_word = word_to_blank(word)                       #turn the letters in a word into blanks
+    
+    %Hangman{letters: blank_word, word: user_word}
   end
 
   def tally(game = %{game_state: :won}) do
