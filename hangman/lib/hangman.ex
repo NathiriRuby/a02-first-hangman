@@ -81,71 +81,78 @@ defmodule Hangman do
 
   def make_move(game, guess) do
     game |> already_used?(guess) |> process_if_not(guess)
-    {game, tally(game)}
   end
 
   def already_used?(game, guess) do
     if (guess in game.used) do
-      %{game | game_state: :already_used}
+      IO.puts("Already Used!")
+      game = %{game | game_state: :already_used}
+      game
     else
       game
     end
   end
 
   def process_if_not(game = %{game_state: :already_used}, _) do
-    game
+    IO.puts("Try another letter!")
+    game = %{game | game_state: :clear}
+    {game, tally(game)}
   end
 
   def process_if_not(game, guess) do
-    record_guess(game, guess) |> good_guess?(guess) |> decide_turns_left(guess) |> decide_state |> return_tally()
+    IO.puts("Guess accepted!")
+    record_guess(game, guess) |> good_guess?(guess) |> decide_turns_left(guess) |> decide_state() |> return_tally()
   end
 
   def record_guess(game, guess) do
+    IO.puts("guess added!")
     game = %{game | used: Enum.sort(game.used ++ [guess])}
+    game
   end
 
-  def good_guess?(game) do
+  def good_guess?(game, guess) do
     if (guess in game.word) do
+      IO.puts("good guess!")
       game = %{game | game_state: :good_guess}
+      game
     else
+      IO.puts("bad guess!")
       game = %{game | game_state: :bad_guess}
+      game
     end
   end
 
-  def decide_turns_left(game = %{game_state}) do
+  def decide_turns_left(game = %{game_state: :bad_guess}, _) do
+    IO.puts("-1 turn!")
+    game = %{game | turns_left: game.turns_left-1}
+    game
   end
 
-  def decide_turns_left() do
+  def decide_turns_left(game = %{game_state: :good_guess}, guess) do
+    IO.puts("guess added to word!")
+    new_word = word_to_blank(game.letters, game.word, guess)
+    game = %{game | letters: new_word}
+    game
   end
 
-  # def make_move(game, guess) do 
-  #   if (guess in game.used) do                                     #if user already guessed that character, tell them so
-  #       IO.puts("Already guessed that letter!")
-  #       {game, tally(game)}
-  #   else                                                              #user guessed a new character that is in the word
-  #     new_used = %{game | used: Enum.sort(game.used ++ ["#{guess}"])}     #Add the new guess to the used list
-  #     new_guess = %{new_used | last_guess: "#{guess}"}
-  #     newgame = new_guess
-  #     if( guess in newgame.word ) do                                      #replace underscores with correct guess
-  #         new_word = word_to_blank(newgame.letters, newgame.word, guess)  #Add the guess characters to the 'in progress' word
-  #         new_letters = %{new_guess | letters: new_word}                   #update the struct with the new word
-  #         if(new_letters.letters == new_letters.word) do                  #If the 'in progress' word has been completed, the game is won
-  #           game = %{new_letters | game_state: :won}
-  #           {game, tally(game)}
-  #         else                                                            #Otherwise, just tell the user it was a good guess
-  #           game = %{new_letters | game_state: :good_guess}
-  #           {game, tally(game)}
-  #         end
-  #     else                                                                 #bad answer! -1 turn
-  #       newgame = %{newgame | turns_left: game.turns_left-1}              
-  #       if (newgame.turns_left == 0) do                                    #If the user is out of chances, end the game
-  #         game = %{newgame | game_state: :lose}
-  #         {game, tally(game)}
-  #       else
-  #         game = %{newgame | game_state: :bad_guess}
-  #         {game, tally(game)}
-  #       end
-  #     end
-  #   end
-  # end
+  def decide_state(game = %{turns_left: 0}) do
+    IO.puts("You lose!")
+    game = %{game | game_state: :lose}
+    game
+  end
+
+  def decide_state(game) do
+    if(game.letters == game.word) do
+      IO.puts("You win!")
+      game = %{game | game_state: :won}
+      game
+    else
+      game
+    end
+  end
+
+  def return_tally(game) do
+    IO.puts("Tally returned!")
+    {game, tally(game)}
+  end
 end
